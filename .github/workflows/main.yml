@@ -10,6 +10,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     defaults:
       run:
         working-directory: word-ninja-vocab-spawn-fix
@@ -27,22 +28,40 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: '21'
 
-      - name: Check project files
+      - name: Verify project layout
         run: |
-          pwd
-          ls -la
           test -f package.json
+          test -f capacitor.config.json
+          test -f public/index.html
+          echo "Project files found."
 
       - name: Install dependencies
         run: npm install
+
+      - name: Prepare local web assets
+        run: |
+          rm -rf www
+          mkdir -p www/vendor
+          cp -R public/. www/
+          cp node_modules/phaser/dist/phaser.min.js www/vendor/phaser.min.js
+          cp node_modules/sql.js/dist/sql-wasm.js www/vendor/sql-wasm.js
+          cp node_modules/sql.js/dist/sql-wasm.wasm www/vendor/sql-wasm.wasm
+          test -f www/index.html
+          echo "Capacitor web assets prepared in www/."
+
       - name: Add Android platform
         run: npx cap add android
 
-      - name: Build Android APK
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Configure landscape orientation
+        run: npm run android:configure
+
+      - name: Build debug APK
         run: |
-          npx cap sync android
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
