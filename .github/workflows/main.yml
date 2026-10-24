@@ -10,6 +10,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: word-ninja-vocab-spawn-fix
 
     steps:
       - name: Checkout source
@@ -28,13 +31,15 @@ jobs:
 
       - name: Check project files
         run: |
-          echo "Checking Word Ninja repository"
+          pwd
           ls -la
           test -f package.json
 
+      - name: Install dependencies
+        run: npm install
+
       - name: Build Android APK
         run: |
-          npm install
           npx cap sync android
           cd android
           chmod +x gradlew
@@ -44,6 +49,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: word-ninja-android-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: word-ninja-vocab-spawn-fix/android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 7
