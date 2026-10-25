@@ -15,7 +15,25 @@ test('Capacitor package configuration points to the prepared web directory and h
 });
 
 test('Android workflow downloads licensed offline SQLite data and uploads a built APK', () => {
-  const workflow = read('.github/workflows/android-apk.yml');
+  // Support both a nested app folder and a standalone repository.
+  const workflowCandidates = [
+    path.resolve(root, '..', '.github/workflows/main.yml'),
+    path.resolve(root, '..', '.github/workflows/main.yaml'),
+    path.resolve(root, '..', '.github/workflows/android-apk.yml'),
+    path.resolve(root, '.github/workflows/android-apk.yml'),
+  ];
+
+  const workflowPath = workflowCandidates.find((candidate) =>
+    fs.existsSync(candidate)
+  );
+
+  assert.ok(
+    workflowPath,
+    'Android Actions workflow should exist in the repository or project'
+  );
+
+  const workflow = fs.readFileSync(workflowPath, 'utf8');
+
   assert.match(workflow, /npm run android:dictionary/);
   assert.match(workflow, /npm run android:prepare/);
   assert.match(workflow, /npx cap add android/);
